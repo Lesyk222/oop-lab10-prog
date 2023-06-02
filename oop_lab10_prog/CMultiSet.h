@@ -27,6 +27,7 @@ public:
 
     void readArray();
     void printArray();
+    void fillSet();
 
     CMultiSet<T> operator+(const CMultiSet<T>& other) const noexcept;
     CMultiSet<T> operator-(const CMultiSet<T>& other) const noexcept;
@@ -62,8 +63,8 @@ T CMultiSet<T>::getElement(int index) const noexcept {
 
 template<typename T>
 int CMultiSet<T>::countOfCertainElement(const T& value) const noexcept {
-    int count = 0;
-    equal_range(values.begin(), values.end(), value, count);
+    auto range = equal_range(values.begin(), values.end(), value);
+    int count = distance(range.first, range.second);
     return count;
 }
 
@@ -124,34 +125,36 @@ void CMultiSet<T>::readArray() {
 template<typename T>
 CMultiSet<T> CMultiSet<T>::operator+(const CMultiSet<T>& other) const noexcept {
     CMultiSet<T> multiSet;
-    multiSet.values = values;
-    for (const T& value : other.values) {
+
+    std::vector<T> result(values.size() + other.values.size());
+    auto it = std::set_union(values.begin(), values.end(), other.values.begin(), other.values.end(), result.begin());
+    result.resize(std::distance(result.begin(), it));
+
+    for (const T& value : result) {
         multiSet.addElement(value);
     }
+
     return multiSet;
 }
+
 
 template<typename T>
 CMultiSet<T> CMultiSet<T>::operator-(const CMultiSet<T>& other) const noexcept {
     CMultiSet<T> multiSet;
-    for (const T& value : values) {
-        if (count(other.values.begin(), other.values.end(), value) > 0) {
-            multiSet.addElement(value);
-        }
-    }
+    std::set_difference(values.begin(), values.end(), other.values.begin(), other.values.end(),
+        std::back_inserter(multiSet.values));
     return multiSet;
 }
+
 
 template<typename T>
 CMultiSet<T> CMultiSet<T>::operator/(const CMultiSet<T>& other) const noexcept {
     CMultiSet<T> multiSet;
-    for (const T& value : values) {
-        if (count(other.values.begin(), other.values.end(), value) == 0) {
-            multiSet.addElement(value);
-        }
-    }
+    std::set_intersection(values.begin(), values.end(), other.values.begin(), other.values.end(),
+        std::inserter(multiSet.values, multiSet.values.begin()));
     return multiSet;
 }
+
 
 template<typename T>
 CMultiSet<T>& CMultiSet<T>::operator=(const CMultiSet<T>& other) {
