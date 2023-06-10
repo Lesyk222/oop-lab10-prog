@@ -13,6 +13,7 @@ private:
 
 public:
     CMultiSet();
+    CMultiSet(initializer_list<T> list);
 
     T getElement(int index) const noexcept;
 
